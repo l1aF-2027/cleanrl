@@ -123,7 +123,48 @@ class QNetwork(nn.Module):
     def forward(self, x):
         return self.network(x / 255.0)
 
+def capture_best_episode_video(envs, run_name, episodic_return):
+    # Tạo môi trường mới để capture video
+    env = gym.make(args.env_id, render_mode="rgb_array")
+    env = gym.wrappers.RecordVideo(
+        env, 
+        video_folder=f"videos/{run_name}/best_episode_return_{episodic_return}", 
+        name_prefix=f"best_episode_return_{episodic_return}"
+    )
+    
+    # Áp dụng các wrapper giống như môi trường huấn luyện
+    env = NoopResetEnv(env, noop_max=30)
+    env = MaxAndSkipEnv(env, skip=4)
+    env = EpisodicLifeEnv(env)
+    if "FIRE" in env.unwrapped.get_action_meanings():
+        env = FireResetEnv(env)
+    env = ClipRewardEnv(env)
+    env = gym.wrappers.ResizeObservation(env, (84, 84))
+    env = gym.wrappers.GrayScaleObservation(env)
+    env = gym.wrappers.FrameStack(env, 4)
 
+    # Reset môi trường
+    obs, _ = env.reset()
+    
+    # Chạy episode
+    done = False
+    truncated = False
+    total_reward = 0
+
+    while not (done or truncated):
+        # Sử dụng mạng Q để chọn hành động
+        with torch.no_grad():
+            q_values = q_network(torch.Tensor(obs).unsqueeze(0).to(device))
+            action = torch.argmax(q_values, dim=1).cpu().numpy()[0]
+        
+        # Thực hiện hành động
+        obs, reward, done, truncated, _ = env.step(action)
+        total_reward += reward
+
+    # Đóng môi trường
+    env.close()
+
+    print(f"Captured best episode video with return: {total_reward}")`
 def linear_schedule(start_e: float, end_e: float, duration: int, t: int):
     slope = (end_e - start_e) / duration
     return max(slope * t + start_e, end_e)
@@ -210,6 +251,21 @@ poetry run pip install "stable_baselines3==2.0.0a1" "gymnasium[atari,accept-rom-
                     print(f"global_step={global_step}, episodic_return={info['episode']['r']}")
                     writer.add_scalar("charts/episodic_return", info["episode"]["r"], global_step)
                     writer.add_scalar("charts/episodic_length", info["episode"]["l"], global_step)
+        best_episodic_return = float('-inf')
+
+        if "final_info" in infos:
+            for info in infos["final_info"]:
+                if info and "episode" in info:
+                    episodic_return = info["episode"]["r"]
+                    
+                    # Nếu là episode return cao nhất
+                    if episodic_return > best_episodic_return:
+                        best_episodic_return = episodic_return
+                        
+                        # Ở đây bạn có thể thêm logic để capture video cho episode này
+                        # Ví dụ: gọi một hàm riêng để capture video
+                        capture_best_episode_video(envs, run_name, episodic_return)
+
 
         # TRY NOT TO MODIFY: save data to reply buffer; handle `final_observation`
         real_next_obs = next_obs.copy()

@@ -170,7 +170,7 @@ def linear_schedule(start_e: float, end_e: float, duration: int, t: int):
     slope = (end_e - start_e) / duration
     return max(slope * t + start_e, end_e)
 
-
+best_episodic_return = float('-inf')
 if __name__ == "__main__":
     import stable_baselines3 as sb3
 
@@ -252,7 +252,7 @@ poetry run pip install "stable_baselines3==2.0.0a1" "gymnasium[atari,accept-rom-
                     print(f"global_step={global_step}, episodic_return={info['episode']['r']}")
                     writer.add_scalar("charts/episodic_return", info["episode"]["r"], global_step)
                     writer.add_scalar("charts/episodic_length", info["episode"]["l"], global_step)
-        best_episodic_return = float('-inf')
+ 
 
         if "final_info" in infos:
             for info in infos["final_info"]:
@@ -261,11 +261,11 @@ poetry run pip install "stable_baselines3==2.0.0a1" "gymnasium[atari,accept-rom-
                     
                     # Nếu là episode return cao nhất
                     if episodic_return > best_episodic_return:
-                        best_episodic_return = episodic_return
                         
                         # Ở đây bạn có thể thêm logic để capture video cho episode này
                         # Ví dụ: gọi một hàm riêng để capture video
                         capture_best_episode_video(envs, run_name, episodic_return)
+                        best_episodic_return = episodic_return
 
 
         # TRY NOT TO MODIFY: save data to reply buffer; handle `final_observation`

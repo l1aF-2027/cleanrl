@@ -164,7 +164,8 @@ def capture_best_episode_video(envs, run_name, episodic_return):
     # Đóng môi trường
     env.close()
 
-    print(f"Captured best episode video with return: {total_reward}")`
+    print(f"Captured best episode video with return: {total_reward}")
+     
 def linear_schedule(start_e: float, end_e: float, duration: int, t: int):
     slope = (end_e - start_e) / duration
     return max(slope * t + start_e, end_e)

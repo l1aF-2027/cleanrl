@@ -68,22 +68,11 @@ class Args:
 def make_env(env_id, seed, idx, capture_video, run_name):
     def thunk():
         if capture_video and idx == 0:
-            env = gym.make(env_id, render_mode="rgb_array")
-            env = gym.wrappers.RecordVideo(
-                env=env,
-                video_folder=f"{run_name}/videos",
-                episode_trigger=lambda x: x,
-                disable_logger=True,
-            )
+            env = gym.make(env_id, render_mode="depth_array")
+            env = gym.wrappers.RecordVideo(env, f"videos/{run_name}")
         else:
             env = gym.make(env_id)
         env = gym.wrappers.RecordEpisodeStatistics(env)
-        env = gym.wrappers.FlattenObservation(env)
-        env = gym.wrappers.ClipAction(env)
-        env = gym.wrappers.NormalizeObservation(env)
-        env = gym.wrappers.TransformObservation(env, lambda state: np.clip(state, -10, 10))
-        env = gym.wrappers.NormalizeReward(env)
-        env = gym.wrappers.TransformReward(env, lambda reward: np.clip(reward, -10, 10))
         env.action_space.seed(seed)
         return env
 

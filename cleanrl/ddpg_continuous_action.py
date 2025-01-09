@@ -75,7 +75,7 @@ def make_env(env_id, seed, idx, capture_video, run_name):
             env = gym.wrappers.RecordVideo(
                 env, 
                 f"videos/{run_name}", 
-                episode_trigger=lambda episode_id: episode_id > 0 and episode_id % 900 == 0
+                episode_trigger=lambda episode_id: episode_id > 0 and episode_id % 10 == 0
             )
         
         return env

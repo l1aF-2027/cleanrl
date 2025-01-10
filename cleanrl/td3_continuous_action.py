@@ -43,7 +43,7 @@ class Args:
     # Algorithm specific arguments
     env_id: str = "Hopper-v4"
     """the id of the environment"""
-    total_timesteps: int = 1000000
+    total_timesteps: int = 2000000
     """total timesteps of the experiments"""
     learning_rate: float = 3e-4
     """the learning rate of the optimizer"""
@@ -77,7 +77,7 @@ def make_env(env_id, seed, idx, capture_video, run_name):
             env = gym.wrappers.RecordVideo(
                 env, 
                 f"videos/{run_name}", 
-                episode_trigger=lambda episode_id: episode_id > 0 and episode_id % 999 == 0
+                episode_trigger=lambda episode_id: episode_id > 0 and episode_id % 1999 == 0
             )
         
         return env
